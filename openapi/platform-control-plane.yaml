@@ -1,0 +1,363 @@
+openapi: 3.0.0
+info:
+  title: Platform Control Plane API
+  version: 1.0.0
+paths:
+  /api/v1/healthz:
+    get:
+      summary: Health Check
+      responses:
+        '200':
+          description: Ok
+  /api/v1/chat/sessions:
+    get:
+      summary: List Chat Sessions
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSessionListResponse'
+    post:
+      summary: Create Chat Session
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatSessionCreateRequest'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSessionResponse'
+  /api/v1/chat/sessions/{session_id}:
+    get:
+      summary: Get Chat Session
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSessionResponse'
+    patch:
+      summary: Update Chat Session
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatSessionPatchRequest'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSessionResponse'
+  /api/v1/chat/sessions/{session_id}/messages:
+    get:
+      summary: List Chat Messages
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: before_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatMessageListResponse'
+  /api/v1/assistants:
+    get:
+      summary: List Assistants
+      parameters:
+        - name: page_number
+          in: query
+          schema:
+            type: integer
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssistantListResponse'
+  /api/v1/assistants/{assistant_id}:
+    get:
+      summary: Get Assistant
+      parameters:
+        - name: assistant_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssistantResponse'
+  /api/v1/graph_profile/{graph_profile_id}:
+    get:
+      summary: Get Graph Profile
+      parameters:
+        - name: graph_profile_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GraphProfileResponse'
+  /api/v1/model_profile/{model_profile_id}:
+    get:
+      summary: Get Model Profile
+      parameters:
+        - name: model_profile_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelProfileResponse'
+
+components:
+  schemas:
+    ChatSessionListResponse:
+      type: object
+      properties:
+        total_items:
+          type: integer
+        total_pages:
+          type: integer
+        current_page:
+          type: integer
+        page_size:
+          type: integer
+        sessions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatSessionResponse'
+    ChatSessionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        assistant_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        create_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    ChatMessageListResponse:
+      type: object
+      properties:
+        next_cursor:
+          type: string
+          format: uuid
+        has_more:
+          type: boolean
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    ChatSessionCreateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          nullable: true
+        assistant_id:
+          type: string
+          format: uuid
+      required:
+        - assistant_id
+    ChatSessionPatchRequest:
+      type: object
+      properties:
+        title:
+          type: string
+    AssistantListResponse:
+      type: object
+      properties:
+        total_items:
+          type: integer
+        total_pages:
+          type: integer
+        current_page:
+          type: integer
+        page_size:
+          type: integer
+        assistants:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssistantResponse'
+    AssistantResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        version_major:
+          type: integer
+        version_minor:
+          type: integer
+        graph_profile_id:
+          type: string
+          format: uuid
+        model_bindings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModelBinding'
+        system_prompt:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    ModelBinding:
+      type: object
+      properties:
+        slot_name:
+          type: string
+        model_profile_id:
+          type: string
+          format: uuid
+    GraphProfileResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        version_major:
+          type: integer
+        version_minor:
+          type: integer
+        graph_name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        is_active:
+          type: boolean
+    ModelProfileResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        model:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        is_active:
+          type: boolean
+        temperature:
+          type: number
+          nullable: true
+        top_p:
+          type: number
+          nullable: true
+        max_tokens:
+          type: integer
+          nullable: true
